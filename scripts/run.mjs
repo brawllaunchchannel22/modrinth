@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from 'child_process'
 import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { dirname, join, resolve } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const [scriptName, ...args] = process.argv.slice(2)
@@ -14,9 +14,12 @@ if (!scriptName) {
 
 const scriptPath = join(__dirname, `${scriptName}.ts`)
 
+// Use tsx to run TypeScript files (Node 20 cannot natively execute .ts)
+const tsxPath = resolve(__dirname, '../node_modules/.bin/tsx')
+
 const child = spawn(
-	process.execPath,
-	['--disable-warning=MODULE_TYPELESS_PACKAGE_JSON', scriptPath, ...args],
+	tsxPath,
+	[scriptPath, ...args],
 	{
 		stdio: 'inherit',
 	},
