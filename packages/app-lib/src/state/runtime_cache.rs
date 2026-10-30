@@ -295,7 +295,7 @@ impl References {
         let major = version
             .java_version
             .as_ref()
-            .map_or(8, |java| java.major_version);
+            .map_or(8, |java| if java.major_version == 16 { 17 } else { java.major_version });
         let selected = context
             .launch_overrides
             .java_path

@@ -146,7 +146,7 @@ pub async fn get_java_version_from_launch_context(
     let key = version_info
         .java_version
         .as_ref()
-        .map_or(8, |it| it.major_version);
+        .map_or(8, |it| if it.major_version == 16 { 17 } else { it.major_version });
 
     let state = State::get().await?;
 
@@ -314,7 +314,7 @@ pub(crate) async fn resolve_java_for_launch(
     let key = version_info
         .java_version
         .as_ref()
-        .map_or(8, |it| it.major_version);
+        .map_or(8, |it| if it.major_version == 16 { 17 } else { it.major_version });
     let (java_path, set_java) = if let Some(java_version) =
         get_java_version_from_launch_context(context, &version_info).await?
     {
@@ -504,7 +504,7 @@ async fn install_minecraft_inner(
     let key = version_info
         .java_version
         .as_ref()
-        .map_or(8, |it| it.major_version);
+        .map_or(8, |it| if it.major_version == 16 { 17 } else { it.major_version });
     if let Some(reporter) = &reporter {
         reporter
             .update(

@@ -558,7 +558,7 @@ pub async fn download_version_info(
     }
 
     let removed_loader = loader.is_some_and(super::is_locally_installed_loader);
-    let res = if path.exists() && (!force.unwrap_or(false) || removed_loader) {
+    let mut res = if path.exists() && (!force.unwrap_or(false) || removed_loader) {
         io::read(path)
             .err_into::<crate::Error>()
             .await
@@ -628,6 +628,13 @@ pub async fn download_version_info(
 
     if let Some(loading_bar) = loading_bar {
         emit_loading(loading_bar, 5.0, None)?;
+    }
+
+    if let Some(java_version) = &mut res.java_version {
+        if java_version.major_version == 16 {
+            tracing::info!("Mapping Java 16 requirement to Java 17 for Minecraft {version_id}");
+            java_version.major_version = 17;
+        }
     }
 
     tracing::debug!("Loaded version info for Minecraft {version_id}");

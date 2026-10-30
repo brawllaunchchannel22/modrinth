@@ -45,11 +45,12 @@ pub async fn find_filtered_jres(
 
     // Filter out JREs that are not 1.17 or higher
     Ok(if let Some(java_version) = java_version {
+        let target_version = if java_version == 16 { 17 } else { java_version };
         jres.into_iter()
             .filter(|jre| {
                 let jre_version = extract_java_version(&jre.version);
                 if let Ok(jre_version) = jre_version {
-                    jre_version == java_version
+                    jre_version == target_version || jre_version == java_version
                 } else {
                     false
                 }
@@ -112,10 +113,14 @@ fn java_step_progress(current: u64) -> InstallProgress {
 }
 
 async fn auto_install_java_inner(
-    java_version: u32,
+    mut java_version: u32,
     show_loading: bool,
     reporter: Option<InstallProgressReporter>,
 ) -> crate::Result<PathBuf> {
+    if java_version == 16 {
+        tracing::info!("Mapping auto-install Java 16 to Java 17");
+        java_version = 17;
+    }
     let state = State::get().await?;
     let _runtime_lease = state.content_store.runtime_cache_lock.read().await;
 
@@ -386,7 +391,8 @@ pub async fn test_jre(
         "Expected Java version {major_version}, and found {version} at {}",
         path.display()
     );
-    Ok(version == major_version)
+    let expected = if major_version == 16 { 17 } else { major_version };
+    Ok(version == expected || version == major_version)
 }
 
 fn system_memory_bytes() -> u64 {
